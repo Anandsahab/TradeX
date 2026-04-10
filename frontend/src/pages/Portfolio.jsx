@@ -7,13 +7,16 @@ const API_URL = "/api";
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
 
-export default function Portfolio({ dark }) {
+export default function Portfolio({ dark, user }) {
   const { card, text, muted, divider, tooltipStyle } = useTheme(dark);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}/portfolio/analytics`, { credentials: 'include' })
+    const token = localStorage.getItem("token");
+    fetch(`${API_URL}/portfolio/analytics`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
       .then(res => res.json())
       .then(data => {
         setAnalytics(data);

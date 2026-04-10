@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import { INITIAL_HOLDINGS, buildStockMap, buildSparklines } from "./constants.js";
 
@@ -10,6 +11,9 @@ import Simulator from "./pages/Simulator.jsx";
 import Portfolio from "./pages/Portfolio.jsx";
 import Transactions from "./pages/Transactions.jsx";
 import Profile from "./pages/Profile.jsx";
+import Login from "./pages/Login.jsx";
+import SignUp from "./pages/SignUp.jsx";
+import Landing from "./pages/Landing.jsx";
 
 import { BuyModal, SellModal, Icon } from "./components/ui.jsx";
 
@@ -19,6 +23,24 @@ const STOCK_MAP = buildStockMap();
 const SPARKLINES = buildSparklines();
 
 const API_URL = "/api";
+
+function isAuthenticated() {
+  return !!localStorage.getItem("token");
+}
+
+function ProtectedRoute({ children, user }) {
+  if (!isAuthenticated() && !user) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
+function AuthRoute({ children, user }) {
+  if (isAuthenticated() || user) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+}
 
 export default function TradeX() {
   const [dark, setDark] = useState(true);
@@ -32,11 +54,47 @@ export default function TradeX() {
   const [stockMap, setStockMap] = useState(STOCK_MAP);
   const [sparklines, setSparklines] = useState(SPARKLINES);
 
-  const [user, setUser] = useState({ id: "1", username: "Demo", email: "demo@tradesim.io" });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const { bg } = useTheme(dark);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
+    if (token && storedUser) {
+      setUser(JSON.parse(storedUser));
+
+      fetch(`${API_URL}/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.user) {
+            setUser(data.user);
+            localStorage.setItem("user", JSON.stringify(data.user));
+          } else {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            setUser(null);
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setUser(null);
+        });
+    }
+
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated() && !user) return;
+
+    const token = localStorage.getItem("token");
+
     fetch(`${API_URL}/stocks`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
@@ -47,16 +105,22 @@ export default function TradeX() {
       })
       .catch((err) => console.log("Using local stock data"));
 
-    fetch(`${API_URL}/portfolio`, { credentials: "include" })
+    fetch(`${API_URL}/portfolio`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
       .then((res) => res.json())
       .then((data) => {
+        if (data.error === "Unauthorized") {
+          notify("Please login to view portfolio", "error");
+          return;
+        }
         if (data.wallet !== undefined) {
           setWallet(data.wallet);
           setHoldings(data.holdings || []);
         }
       })
       .catch((err) => console.log("Using local portfolio data"));
-  }, []);
+  }, [user]);
 
   const portfolioValue = holdings.reduce(
     (sum, h) => sum + (stockMap[h.symbol]?.price ?? 0) * h.qty,
@@ -69,11 +133,19 @@ export default function TradeX() {
   };
 
   const handleBuy = (stock, qty) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      notify("Login required to perform this action", "error");
+      return;
+    }
+
     fetch(`${API_URL}/buy`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ symbol: stock.symbol, qty }),
-      credentials: "include",
     })
       .then((res) => res.json())
       .then((data) => {
@@ -81,9 +153,11 @@ export default function TradeX() {
           notify(data.error, "error");
         } else {
           setWallet(data.wallet);
-          fetch(`${API_URL}/portfolio`, { credentials: "include" })
+          fetch(`${API_URL}/portfolio`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
             .then((res) => res.json())
-            .then((data) => setHoldings(data.holdings));
+            .then((data) => setHoldings(data.holdings || []));
           notify(`Bought ${qty} share${qty > 1 ? "s" : ""} of ${stock.symbol}`);
         }
       })
@@ -92,11 +166,19 @@ export default function TradeX() {
   };
 
   const handleSell = (stock, qty) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      notify("Login required to perform this action", "error");
+      return;
+    }
+
     fetch(`${API_URL}/sell`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ symbol: stock.symbol, qty }),
-      credentials: "include",
     })
       .then((res) => res.json())
       .then((data) => {
@@ -104,9 +186,11 @@ export default function TradeX() {
           notify(data.error, "error");
         } else {
           setWallet(data.wallet);
-          fetch(`${API_URL}/portfolio`, { credentials: "include" })
+          fetch(`${API_URL}/portfolio`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
             .then((res) => res.json())
-            .then((data) => setHoldings(data.holdings));
+            .then((data) => setHoldings(data.holdings || []));
           notify(`Sold ${qty} share${qty > 1 ? "s" : ""} of ${stock.symbol}`);
         }
       })
@@ -114,102 +198,158 @@ export default function TradeX() {
     setSellTarget(null);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      await fetch(`${API_URL}/logout`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
     notify("Signed out");
   };
 
-  return (
-    <div
-      className={`min-h-screen ${bg} font-sans transition-colors duration-300`}
-      style={{ fontFamily: "'DM Sans', 'Sora', system-ui, sans-serif" }}
-    >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
-        @keyframes modalIn { from { opacity:0; transform:scale(0.9) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
-        @keyframes slideDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-        .scrollbar-none::-webkit-scrollbar { display:none; }
-        .scrollbar-none { -ms-overflow-style:none; scrollbar-width:none; }
-      `}</style>
-
-      {notification && (
-        <div
-          className="fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl"
-          style={{
-            animation: "slideDown .3s ease both",
-            background: notification.type === "success" ? "#10b981" : "#ef4444",
-          }}
-        >
-          <Icon name="check" size={16} cls="text-white" />
-          <span className="text-sm font-semibold text-white">{notification.msg}</span>
-        </div>
-      )}
-
-      {buyTarget && (
-        <BuyModal
-          stock={buyTarget}
-          wallet={wallet}
-          onClose={() => setBuyTarget(null)}
-          onBuy={handleBuy}
-          dark={dark}
-        />
-      )}
-
-      {sellTarget && (
-        <SellModal
-          stock={stockMap[sellTarget.symbol]}
-          holding={sellTarget}
-          wallet={wallet}
-          onClose={() => setSellTarget(null)}
-          onSell={handleSell}
-          dark={dark}
-        />
-      )}
-
-      <Navbar page={page} setPage={setPage} dark={dark} setDark={setDark} wallet={wallet} />
-
-      <div className="pb-20 lg:pb-0 p-5 lg:p-6" style={{ animation: "fadeIn .3s ease" }}>
-        {page === "dashboard" && (
-          <Dashboard
-            holdings={holdings}
-            stockMap={stockMap}
-            wallet={wallet}
-            dark={dark}
-            onSell={(holding) => setSellTarget(holding)}
-            user={user}
-          />
-        )}
-        {page === "market" && (
-          <Market
-            holdings={holdings}
-            sparklines={sparklines}
-            dark={dark}
-            onBuy={(stock) => setBuyTarget(stock)}
-          />
-        )}
-        {page === "simulator" && (
-          <Simulator
-            holdings={holdings}
-            stockMap={stockMap}
-            scenario={scenario}
-            setScenario={setScenario}
-            dark={dark}
-          />
-        )}
-        {page === "portfolio" && <Portfolio dark={dark} />}
-        {page === "transactions" && <Transactions dark={dark} />}
-        {page === "profile" && (
-          <Profile
-            user={user}
-            onLogout={handleLogout}
-            onUpdate={setUser}
-            onLogin={setUser}
-            onRegister={() => {}}
-            dark={dark}
-          />
-        )}
+  if (loading) {
+    return (
+      <div className={`min-h-screen ${bg} flex items-center justify-center`}>
+        <div className="animate-pulse text-emerald-500 font-semibold">Loading...</div>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <BrowserRouter>
+      <div
+        className={`min-h-screen ${bg} font-sans transition-colors duration-300`}
+        style={{ fontFamily: "'DM Sans', 'Sora', system-ui, sans-serif" }}
+      >
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
+          @keyframes modalIn { from { opacity:0; transform:scale(0.9) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+          @keyframes slideDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+          @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+          .scrollbar-none::-webkit-scrollbar { display:none; }
+          .scrollbar-none { -ms-overflow-style:none; scrollbar-width:none; }
+        `}</style>
+
+        {notification && (
+          <div
+            className="fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl"
+            style={{
+              animation: "slideDown .3s ease both",
+              background: notification.type === "success" ? "#10b981" : "#ef4444",
+            }}
+          >
+            <Icon name="check" size={16} cls="text-white" />
+            <span className="text-sm font-semibold text-white">{notification.msg}</span>
+          </div>
+        )}
+
+        {buyTarget && (
+          <BuyModal
+            stock={buyTarget}
+            wallet={wallet}
+            onClose={() => setBuyTarget(null)}
+            onBuy={handleBuy}
+            dark={dark}
+          />
+        )}
+
+        {sellTarget && (
+          <SellModal
+            stock={stockMap[sellTarget.symbol]}
+            holding={sellTarget}
+            wallet={wallet}
+            onClose={() => setSellTarget(null)}
+            onSell={handleSell}
+            dark={dark}
+          />
+        )}
+
+        <Routes>
+          <Route
+            path="/"
+            element={<Landing user={user} />}
+          />
+          <Route
+            path="/login"
+            element={
+              <AuthRoute user={user}>
+                <Login setUser={setUser} dark={dark} />
+              </AuthRoute>
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              <AuthRoute user={user}>
+                <SignUp setUser={setUser} dark={dark} />
+              </AuthRoute>
+            }
+          />
+          <Route
+            path="/dashboard/*"
+            element={
+              <ProtectedRoute user={user}>
+                <Navbar
+                  page={page}
+                  setPage={setPage}
+                  dark={dark}
+                  setDark={setDark}
+                  wallet={wallet}
+                  user={user}
+                  onLogout={handleLogout}
+                />
+
+                <div className="pb-20 lg:pb-0 p-5 lg:p-6" style={{ animation: "fadeIn .3s ease" }}>
+                  {page === "dashboard" && (
+                    <Dashboard
+                      holdings={holdings}
+                      stockMap={stockMap}
+                      wallet={wallet}
+                      dark={dark}
+                      onSell={(holding) => setSellTarget(holding)}
+                      user={user}
+                    />
+                  )}
+                  {page === "market" && (
+                    <Market
+                      holdings={holdings}
+                      sparklines={sparklines}
+                      dark={dark}
+                      onBuy={(stock) => setBuyTarget(stock)}
+                    />
+                  )}
+                  {page === "simulator" && (
+                    <Simulator
+                      holdings={holdings}
+                      stockMap={stockMap}
+                      scenario={scenario}
+                      setScenario={setScenario}
+                      dark={dark}
+                    />
+                  )}
+                  {page === "portfolio" && <Portfolio dark={dark} user={user} />}
+                  {page === "transactions" && <Transactions dark={dark} user={user} />}
+                  {page === "profile" && (
+                    <Profile
+                      user={user}
+                      onLogout={handleLogout}
+                      onUpdate={setUser}
+                      onLogin={setUser}
+                      onRegister={() => { }}
+                      dark={dark}
+                    />
+                  )}
+                </div>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }

@@ -1,116 +1,162 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Icon } from "../components/ui.jsx";
-import { useTheme } from "../hooks/useTheme.js";
+import { motion } from "framer-motion";
 
-const API_URL = "/api";
-
-export default function SignUp({ dark, onLogin }) {
-  const { bg, card, text, muted, input } = useTheme(dark);
-  const navigate = useNavigate();
-  
-  const [formData, setFormData] = useState({ username: "", email: "", password: "" });
+export default function SignUp({ setUser, dark }) {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-    
+
+    if (!username || !email || !password) {
+      setError("All fields are required");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await fetch(`${API_URL}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
       });
       const data = await res.json();
-      
+
       if (data.error) {
         setError(data.error);
-      } else {
-        onLogin(data.user);
-        navigate('/');
+      } else if (data.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setUser(data.user);
+        navigate("/");
       }
     } catch (err) {
-      setError("Failed to connect. Please try again.");
+      setError("Failed to signup. Please try again.");
     }
     setLoading(false);
   };
 
   return (
-    <div className={`min-h-screen ${bg} flex items-center justify-center p-4`}>
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`w-full max-w-md rounded-2xl border p-8 ${
+          dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"
+        }`}
+      >
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
             T
           </div>
-          <h1 className={`text-2xl font-bold ${text}`}>Create Account</h1>
-          <p className={`text-sm ${muted}`}>Join TradeSimIO and start trading</p>
+          <h1 className={`text-2xl font-bold ${dark ? "text-white" : "text-gray-900"}`}>
+            Create Account
+          </h1>
+          <p className={dark ? "text-gray-400" : "text-gray-500"}>
+            Start your trading journey with TradeX
+          </p>
         </div>
 
-        <div className={`rounded-2xl border p-6 ${card}`}>
-          {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-sm">
-              {error}
-            </div>
-          )}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="mb-4 p-3 rounded-xl bg-red-500/20 border border-red-500/30 text-red-500 text-sm"
+          >
+            {error}
+          </motion.div>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${text}`}>Username</label>
-              <input
-                type="text"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                className={`w-full px-4 py-3 rounded-xl border text-sm ${input}`}
-                placeholder="Enter username"
-                required
-              />
-            </div>
-
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${text}`}>Email</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className={`w-full px-4 py-3 rounded-xl border text-sm ${input}`}
-                placeholder="Enter email"
-                required
-              />
-            </div>
-
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${text}`}>Password</label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className={`w-full px-4 py-3 rounded-xl border text-sm ${input}`}
-                placeholder="Min 6 characters"
-                minLength={6}
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 rounded-xl font-bold text-sm bg-emerald-500 hover:bg-emerald-400 text-white transition-all disabled:opacity-50"
-            >
-              {loading ? "Creating Account..." : "Sign Up"}
-            </button>
-          </form>
-
-          <div className={`mt-6 text-center text-sm ${muted}`}>
-            Already have an account?{" "}
-            <button onClick={() => navigate('/signin')} className="text-emerald-500 font-semibold hover:underline">
-              Sign In
-            </button>
+        <form onSubmit={handleSignup} className="space-y-4">
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${dark ? "text-gray-300" : "text-gray-700"}`}>
+              Username
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className={`w-full px-4 py-3 rounded-xl border text-sm ${
+                dark
+                  ? "bg-gray-800 border-gray-700 text-white focus:border-emerald-500"
+                  : "bg-white border-gray-200 text-gray-900 focus:border-emerald-500"
+              } focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition`}
+              placeholder="Choose a username"
+            />
           </div>
+
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${dark ? "text-gray-300" : "text-gray-700"}`}>
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={`w-full px-4 py-3 rounded-xl border text-sm ${
+                dark
+                  ? "bg-gray-800 border-gray-700 text-white focus:border-emerald-500"
+                  : "bg-white border-gray-200 text-gray-900 focus:border-emerald-500"
+              } focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition`}
+              placeholder="Enter your email"
+            />
+          </div>
+
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${dark ? "text-gray-300" : "text-gray-700"}`}>
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`w-full px-4 py-3 rounded-xl border text-sm ${
+                dark
+                  ? "bg-gray-800 border-gray-700 text-white focus:border-emerald-500"
+                  : "bg-white border-gray-200 text-gray-900 focus:border-emerald-500"
+              } focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition`}
+              placeholder="At least 6 characters"
+            />
+          </div>
+
+          <motion.button
+            whileHover={{ scale: loading ? 1 : 1.02 }}
+            whileTap={{ scale: loading ? 1 : 0.98 }}
+            disabled={loading}
+            type="submit"
+            className={`w-full py-3 rounded-xl font-semibold transition ${
+              loading
+                ? "bg-emerald-500/50 cursor-not-allowed"
+                : "bg-emerald-500 hover:bg-emerald-600"
+            } text-white`}
+          >
+            {loading ? "Creating account..." : "Create Account"}
+          </motion.button>
+        </form>
+
+        <div className={`mt-6 text-center text-sm ${dark ? "text-gray-400" : "text-gray-500"}`}>
+          Already have an account?{" "}
+          <button
+            onClick={() => navigate("/login")}
+            className="text-emerald-500 hover:underline font-medium"
+          >
+            Sign in
+          </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

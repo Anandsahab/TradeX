@@ -4,13 +4,16 @@ import { useTheme } from "../hooks/useTheme.js";
 
 const API_URL = "/api";
 
-export default function Transactions({ dark }) {
+export default function Transactions({ dark, user }) {
   const { card, text, muted, divider } = useTheme(dark);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}/transactions`, { credentials: 'include' })
+    const token = localStorage.getItem("token");
+    fetch(`${API_URL}/transactions`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
       .then(res => res.json())
       .then(data => {
         setTransactions(data.transactions || []);

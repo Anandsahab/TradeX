@@ -3,6 +3,8 @@ import { Icon } from "./ui.jsx";
 import { NAV_ITEMS } from "./Sidebar.jsx";
 import { useTheme } from "../hooks/useTheme.js";
 
+import { useNavigate } from "react-router-dom";
+
 /**
  * Navbar — horizontal top navigation bar with search
  *
@@ -12,23 +14,33 @@ import { useTheme } from "../hooks/useTheme.js";
  *   dark    bool
  *   setDark fn
  *   wallet  number
+ *   user    object  — logged in user
+ *   onLogout fn    — logout handler
  */
-export default function Navbar({ page, setPage, dark, setDark, wallet }) {
+export default function Navbar({ page, setPage, dark, setDark, wallet, user, onLogout }) {
   const { text, muted, divider, subtle } = useTheme(dark);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [showProfileMenu, setShowProfileMenu] = React.useState(false);
+  const navigate = useNavigate();
 
   const navItems = NAV_ITEMS.filter((n) => n.id !== "portfolio" && n.id !== "profile");
-  const profileItems = [
-    { id: "portfolio", label: "Portfolio", icon: "wallet" },
-    { id: "transactions", label: "History", icon: "info" },
-  ];
+  const profileItems = user
+    ? [
+        { id: "portfolio", label: "Portfolio", icon: "wallet" },
+        { id: "transactions", label: "History", icon: "info" },
+      ]
+    : [];
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       setPage("market");
     }
+  };
+
+  const handleLogout = () => {
+    if (onLogout) onLogout();
+    navigate("/login");
   };
 
   return (
@@ -91,19 +103,29 @@ export default function Navbar({ page, setPage, dark, setDark, wallet }) {
           {/* Profile dropdown */}
           <div className="relative">
             <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              onClick={() => {
+                if (!user) {
+                  navigate("/login");
+                } else {
+                  setShowProfileMenu(!showProfileMenu);
+                }
+              }}
               className={`p-2 rounded-xl transition ${
                 dark
                   ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
                   : "bg-gray-100 hover:bg-gray-200 text-gray-600"
               }`}
             >
-              <Icon name="user" size={18} />
+              <Icon name={user ? "user" : "user"} size={18} />
             </button>
-            {showProfileMenu && (
-              <div className={`absolute right-0 top-full mt-2 w-48 rounded-xl border overflow-hidden ${
+            {showProfileMenu && user && (
+              <div className={`absolute right-0 top-full mt-2 w-56 rounded-xl border overflow-hidden z-50 ${
                 dark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
               }`}>
+                <div className={`px-4 py-2.5 text-xs border-b ${divider}`}>
+                  <span className={muted}>Signed in as</span>
+                  <div className={`font-semibold ${text}`}>{user.username}</div>
+                </div>
                 {profileItems.map((n) => (
                   <button
                     key={n.id}
@@ -123,6 +145,17 @@ export default function Navbar({ page, setPage, dark, setDark, wallet }) {
                     {n.label}
                   </button>
                 ))}
+                <button
+                  onClick={handleLogout}
+                  className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition border-t ${
+                    dark
+                      ? "text-red-400 hover:bg-gray-700 border-gray-700"
+                      : "text-red-600 hover:bg-gray-100 border-gray-200"
+                  }`}
+                >
+                  <Icon name="close" size={16} />
+                  Logout
+                </button>
               </div>
             )}
           </div>
