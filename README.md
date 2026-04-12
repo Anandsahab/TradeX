@@ -1,6 +1,5 @@
 <p align="center">
   <img src="assets/landing.png" width="100%" />
-  <b>Get Started</b>
 </p>
 
 
