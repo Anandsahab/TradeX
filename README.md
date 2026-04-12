@@ -42,10 +42,6 @@ Many beginners want to invest but:
 
 ---
 
-<p align="center">
-  <img src="assets/dashboard.png" width="100%" />
-</p>
-
 ## Technical Architecture
 
 FRONTEND (React + Vite)
@@ -67,13 +63,25 @@ Services:
 - market_service.py
 - ai_service.py (future)
 
-DATABASE (SQLite)
+DATABASE (MongoDb)
 Models:
 - User (id, username, email, password_hash)
 - Transaction (id, user_id, symbol, type, quantity, price, timestamp)
 - Holding (id, user_id, symbol, quantity, avg_cost)
 
 ---
+
+<p align="center">
+  <img src="assets/dashboard.png" width="50%" />
+</p>
+
+
+<p align="center">
+  <img src="assets/explore.png" width="50%" />
+</p>
+
+
+
 
 ## Development Roadmap
 
