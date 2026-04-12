@@ -1,4 +1,9 @@
-# TradeSimIO - Trading Simulation Platform
+<p align="center">
+  <img src="assets/landing.png" width="100%" />
+</p>
+
+
+# TradeX - Trading Simulation Platform
 
 A comprehensive trading simulation platform for learning and practicing stock trading without risking real money.
 
@@ -6,7 +11,7 @@ A comprehensive trading simulation platform for learning and practicing stock tr
 
 ## Project Overview
 
-**Project Name:** TradeSimIO (also referred to as RiskZero)
+**Project Name:** TradeX (also referred to as RiskZero)
 **Purpose:** Virtual stock trading simulator with paper trading, portfolio management, risk analytics, and AI-assisted decision making
 **Tech Stack:** React + Vite (Frontend), Flask (Backend), REST API
 
@@ -260,7 +265,37 @@ Models:
 
 ## Quick Start
 
+### Prerequisites
+- Node.js (v18+)
+- Python (3.8+)
 
+### Frontend Setup
+1. Open a terminal and navigate to the `frontend` directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+### Backend Setup
+1. Open a new terminal and navigate to the `backend` directory:
+   ```bash
+   cd backend
+   ```
+2. Install the required Python packages:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Start the Flask server:
+   ```bash
+   python app.py
+   ```
 
 ---
 
@@ -271,6 +306,3 @@ This project is under active development. Each phase contains actionable tasks t
 **Current Focus:** Phase 2 and 3 (Data and Trading Engine)
 
 ---
-
-*Last Updated: April 2026*
-*Version: 0.1.0 - Alpha*

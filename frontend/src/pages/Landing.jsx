@@ -70,29 +70,29 @@ function RollingText({ words, dark }) {
   );
 }
 
-function FloatingCard({ dark, delay = 0, children }) {
+function FloatingCard({ dark, delay = 0, children, glowColor = "emerald", blurDelay = 0 }) {
   return (
     <motion.div
-      initial={{ y: 0, opacity: 0 }}
-      animate={{
-        y: [0, -15, 0],
-        opacity: 1,
-      }}
+      initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       transition={{
-        y: {
-          duration: 3 + delay * 0.5,
-          repeat: Infinity,
-          ease: "easeInOut",
-        },
-        opacity: { duration: 0.5, delay },
+        opacity: { duration: 0.8, delay: blurDelay },
+        y: { duration: 0.8, delay: blurDelay, ease: "easeOut" },
+        filter: { duration: 1, delay: blurDelay },
       }}
-      className={`absolute rounded-2xl border p-4 shadow-xl ${
-        dark
-          ? "bg-gray-900/80 border-gray-700 backdrop-blur-md"
-          : "bg-white/80 border-gray-200 backdrop-blur-md"
-      }`}
+      whileHover={{ scale: 1.02, y: -5 }}
+      className="rounded-2xl border backdrop-blur-xl shadow-2xl bg-gray-900/70 border-gray-600/50"
     >
-      {children}
+      <motion.div
+        animate={{ y: [0, -12, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay }}
+        className="relative"
+      >
+        <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 to-transparent rounded-2xl blur-sm opacity-50" />
+        <div className="relative">
+          {children}
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
@@ -104,7 +104,7 @@ export default function Landing({ user, onLoginClick }) {
 
   useEffect(() => {
     setMounted(true);
-    
+
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -112,7 +112,7 @@ export default function Landing({ user, onLoginClick }) {
 
   const handleExplore = () => {
     if (user) {
-      navigate("/?page=market");
+      navigate("/dashboard?page=market");
     } else {
       navigate("/login");
     }
@@ -120,9 +120,11 @@ export default function Landing({ user, onLoginClick }) {
 
   const handleGetStarted = () => {
     if (user) {
-      navigate("/");
+      navigate("/dashboard");
+    } else if (onLoginClick) {
+      onLoginClick();
     } else {
-      navigate("/signup");
+      navigate("/login");
     }
   };
 
@@ -132,11 +134,10 @@ export default function Landing({ user, onLoginClick }) {
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? "bg-gray-950/95 backdrop-blur-md border-b border-gray-800"
-            : "bg-transparent"
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+          ? "bg-gray-950/95 backdrop-blur-md border-b border-gray-800"
+          : "bg-transparent"
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-4 flex items-center justify-between">
           <div
@@ -173,8 +174,8 @@ export default function Landing({ user, onLoginClick }) {
           <div className="flex items-center gap-3">
             {user ? (
               <button
-                onClick={() => navigate("/")}
-                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-sm font-semibold transition"
+                onClick={() => navigate("/dashboard")}
+                className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition"
               >
                 Dashboard
               </button>
@@ -257,76 +258,105 @@ export default function Landing({ user, onLoginClick }) {
             </div>
           </motion.div>
 
-          {/* Right - Floating Cards */}
+          {/* Right - Floating Stats */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative hidden lg:block h-[400px]"
+            className="hidden lg:flex flex-col gap-4"
           >
-            {/* Main Chart Card */}
-            <FloatingCard dark delay={0}>
-              <div className="w-64">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-400">RELIANCE</span>
-                  <span className="text-xs text-emerald-400">+1.24%</span>
+            {/* Section 1 - Main Stock Card */}
+            <FloatingCard dark delay={0} blurDelay={0.3} glowColor="emerald">
+              <div className="w-64 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                      <Icon name="trending_up" size={16} cls="text-emerald-400" />
+                    </div>
+                    <span className="text-sm font-medium">RELIANCE</span>
+                  </div>
+                  <span className="text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400">+1.24%</span>
                 </div>
-                <div className="text-2xl font-bold mb-2">₹2,847.60</div>
-                <ResponsiveContainer width={200} height={60}>
+                <div className="text-3xl font-bold mb-3">₹2,847.60</div>
+                <ResponsiveContainer width="100%" height={70}>
                   <AreaChart data={CHART_DATA}>
                     <defs>
                       <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
+                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
                         <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <Area
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#10b981"
-                      strokeWidth={2}
-                      fill="url(#heroGrad)"
-                    />
+                    <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fill="url(#heroGrad)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </FloatingCard>
 
-            {/* Small Portfolio Card */}
-            <FloatingCard dark delay={0.5} style={{ top: 60, right: -20 }}>
-              <div className="w-40">
-                <div className="flex items-center gap-2 mb-1">
-                  <Icon name="wallet" size={14} cls="text-emerald-400" />
-                  <span className="text-xs text-gray-400">Portfolio</span>
+            <div className="flex gap-4">
+              {/* Section 2 - AI Stats */}
+              <FloatingCard dark delay={0.3} blurDelay={0.6} glowColor="violet">
+                <div className="w-48 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center">
+                      <Icon name="brain" size={16} cls="text-violet-400" />
+                    </div>
+                    <span className="text-sm font-medium">AI Analysis</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-gray-400">Risk Score</span>
+                        <span className="text-violet-400 font-medium">68/100</span>
+                      </div>
+                      <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: "68%" }}
+                          transition={{ delay: 1, duration: 0.8 }}
+                          className="h-full bg-gradient-to-r from-violet-500 to-emerald-500 rounded-full"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-gray-400">Portfolio Health</span>
+                        <span className="text-emerald-400 font-medium">Good</span>
+                      </div>
+                      <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: "82%" }}
+                          transition={{ delay: 1.2, duration: 0.8 }}
+                          className="h-full bg-emerald-500 rounded-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-lg font-bold text-emerald-400">₹1,24,580</div>
-                <div className="text-xs text-emerald-400">+24.58%</div>
-              </div>
-            </FloatingCard>
+              </FloatingCard>
 
-            {/* Small Stock Card */}
-            <FloatingCard dark delay={1} style={{ bottom: 40, left: -20 }}>
-              <div className="w-40">
-                <div className="flex items-center gap-2 mb-1">
-                  <Icon name="trending_up" size={14} cls="text-emerald-400" />
-                  <span className="text-xs text-gray-400">TCS</span>
+              {/* Section 3 - Quick Stats */}
+              <FloatingCard dark delay={0.6} blurDelay={0.9} glowColor="blue">
+                <div className="w-48 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                      <Icon name="wallet" size={16} cls="text-blue-400" />
+                    </div>
+                    <span className="text-sm font-medium">Portfolio</span>
+                  </div>
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <div className="text-2xl font-bold text-blue-400">₹1,24,580</div>
+                      <div className="text-xs text-gray-400">Total Value</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-emerald-400">+24.58%</div>
+                      <div className="text-xs text-gray-400">All Time</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-lg font-bold">₹3,912.40</div>
-                <div className="text-xs text-red-400">-0.87%</div>
-              </div>
-            </FloatingCard>
-
-            {/* Small AI Card */}
-            <FloatingCard dark delay={1.5} style={{ top: 20, left: 40 }}>
-              <div className="w-40">
-                <div className="flex items-center gap-2 mb-1">
-                  <Icon name="brain" size={14} cls="text-violet-400" />
-                  <span className="text-xs text-gray-400">AI Score</span>
-                </div>
-                <div className="text-lg font-bold text-violet-400">72/100</div>
-                <div className="text-xs text-gray-400">Moderate Risk</div>
-              </div>
-            </FloatingCard>
+              </FloatingCard>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -433,9 +463,8 @@ export default function Landing({ user, onLoginClick }) {
                       <div className="text-xs text-gray-400">₹{stock.price.toLocaleString()}</div>
                     </div>
                     <div
-                      className={`text-sm font-semibold ${
-                        stock.isUp ? "text-emerald-400" : "text-red-400"
-                      }`}
+                      className={`text-sm font-semibold ${stock.isUp ? "text-emerald-400" : "text-red-400"
+                        }`}
                     >
                       {stock.isUp ? "+" : ""}
                       {stock.change}%

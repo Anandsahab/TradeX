@@ -272,7 +272,7 @@ export default function TradeX() {
         <Routes>
           <Route
             path="/"
-            element={<Landing user={user} />}
+            element={<Landing user={user} onLoginClick={() => notify("Please login to continue", "error")} />}
           />
           <Route
             path="/login"
@@ -338,10 +338,7 @@ export default function TradeX() {
                     <Profile
                       user={user}
                       onLogout={handleLogout}
-                      onUpdate={setUser}
-                      onLogin={setUser}
-                      onRegister={() => { }}
-                      dark={dark}
+                      wallet={wallet}
                     />
                   )}
                 </div>
