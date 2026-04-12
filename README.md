@@ -1,11 +1,9 @@
-# TradeX - Trading Simulation Platform
-
 <p align="center">
   <img src="assets/landing.png" width="100%" />
 </p>
 
 
-
+# TradeX - Trading Simulation Platform
 A comprehensive trading simulation platform for learning and practicing stock trading without risking real money.
 
 "People don’t fear investing — they fear losing without experience."
