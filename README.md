@@ -70,13 +70,20 @@ Models:
 
 ---
 
-<p align="center">
-  <img src="assets/dashboard.png" width="50%" />
-</p>
-
 
 <p align="center">
-  <img src="assets/explore.png" width="50%" />
+  <table>
+    <tr>
+      <td align="center">
+        <img src="assets/dashboard.png" width="400"/><br/>
+        <b>Dashboard</b>
+      </td>
+      <td align="center">
+        <img src="assets/explore.png" width="400"/><br/>
+        <b>Explore</b>
+      </td>
+    </tr>
+  </table>
 </p>
 
 
