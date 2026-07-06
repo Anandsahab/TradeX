@@ -21,7 +21,7 @@
 <p align="center">
   <i>"People don't fear investing — they fear losing without experience."</i>
 </p>
->>>>>>> ae43a30 (Final TradeX)
+(Final TradeX)
 
 "People don’t fear investing — they fear losing without experience."
 ---
