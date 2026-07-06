@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useTheme } from "../hooks/useTheme.js";
 import { Icon } from "../components/ui.jsx";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 const STOCKS = [
   { symbol: "RELIANCE", name: "Reliance Industries" },
   { symbol: "TCS", name: "Tata Consultancy Services" },
@@ -98,7 +100,7 @@ export default function Orders({ dark, user, stockMap, wallet }) {
     if (!token) return;
 
     try {
-      const res = await fetch("/api/orders/pending", {
+      const res = await fetch(`${API_URL}/orders/pending`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -108,7 +110,7 @@ export default function Orders({ dark, user, stockMap, wallet }) {
     }
 
     try {
-      const res = await fetch("/api/transactions", {
+      const res = await fetch(`${API_URL}/transactions`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -149,7 +151,7 @@ export default function Orders({ dark, user, stockMap, wallet }) {
 
     setPlacing(true);
     try {
-      const res = await fetch("/api/orders/place", {
+      const res = await fetch(`${API_URL}/orders/place`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -185,7 +187,7 @@ export default function Orders({ dark, user, stockMap, wallet }) {
     if (!token) return;
 
     try {
-      const res = await fetch(`/api/orders/cancel/${orderId}`, {
+      const res = await fetch(`${API_URL}/orders/cancel/${orderId}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });

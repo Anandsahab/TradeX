@@ -7,15 +7,20 @@ import os
 import random
 import threading
 import time
+from dotenv import load_dotenv
 from database import db, init_db
 from models import User, Holding, Transaction, PendingOrder
 from services.market_service import market_service
 
-app = Flask(__name__)
-app.secret_key = 'tradesimiq-secret-key-2024'
-CORS(app, supports_credentials=True)
+load_dotenv()
 
-JWT_SECRET = 'tradesimiq-jwt-secret-key-2024'
+app = Flask(__name__)
+app.secret_key = os.getenv('SECRET_KEY', 'tradesimiq-secret-key-2024')
+
+CORS_ORIGIN = os.getenv('CORS_ORIGIN', '*')
+CORS(app, origins=CORS_ORIGIN, supports_credentials=True)
+
+JWT_SECRET = os.getenv('JWT_SECRET', 'tradesimiq-jwt-secret-key-2024')
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRY_HOURS = 24
 

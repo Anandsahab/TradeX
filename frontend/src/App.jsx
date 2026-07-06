@@ -23,7 +23,8 @@ import { useTheme } from "./hooks/useTheme.js";
 const STOCK_MAP = buildStockMap();
 const SPARKLINES = buildSparklines();
 
-const API_URL = "/api";
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 function isAuthenticated() {
   return !!localStorage.getItem("token");
