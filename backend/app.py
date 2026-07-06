@@ -1012,10 +1012,10 @@ def order_scheduler():
         logger.info("Scheduler stopped")
 
 
+init_db(app)
+
+scheduler_thread = threading.Thread(target=order_scheduler, daemon=True)
+scheduler_thread.start()
+
 if __name__ == '__main__':
-    init_db(app)
-    
-    scheduler_thread = threading.Thread(target=order_scheduler, daemon=True)
-    scheduler_thread.start()
-    
     app.run(debug=False, port=5000, threaded=True)
