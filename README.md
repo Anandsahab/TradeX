@@ -45,7 +45,7 @@ TradeX is a **risk-free stock trading simulator** built for anyone who wants to 
 
 ## Screenshots
 
-<<<<<<< HEAD
+
 ### Phase 1: Foundation - COMPLETED
 - [x] Flask Backend Setup with app.py
 - [x] React Frontend with Vite
@@ -82,11 +82,10 @@ TradeX is a **risk-free stock trading simulator** built for anyone who wants to 
 </p>
 
 </details>
->>>>>>> ae43a30 (Final TradeX)
 
 ## 🧠 Problem Statement
 
-<<<<<<< HEAD
+
 Many beginners want to invest but:
 - Fear losing money  
 - Lack real market experience  
@@ -269,7 +268,7 @@ TradeX/
 ├── .gitignore
 └── README.md
 ```
->>>>>>> ae43a30 (Final TradeX)
+
 
 ---
 
@@ -282,7 +281,7 @@ TradeX/
 - Git
 
 ### Backend Setup
-<<<<<<< HEAD
+
 1. Open a new terminal and navigate to the `backend` directory:
    ```bash
    cd backend
@@ -295,7 +294,7 @@ TradeX/
    ```bash
    python app.py
    ```
-=======
+
 
 ```bash
 cd backend
@@ -460,6 +459,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ---
 
 <p align="center">
-  <sub>Built with ❤️ by Team RiskZero</sub>
+  <sub>Built with ❤️ by Chaitanya Anand</sub>
 </p>
->>>>>>> ae43a30 (Final TradeX)
