@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
 import { Icon, CircularProgress } from "../components/ui.jsx";
+import TradeXAssistant from "../components/TradeXAssistant.jsx";
 import { useTheme } from "../hooks/useTheme.js";
 
 const USER_DATA = {
@@ -31,58 +32,35 @@ function AnimatedNumber({ value, prefix = "₹", duration = 1.5 }) {
   useEffect(() => {
     if (hasAnimated.current) return;
     hasAnimated.current = true;
-    
+
     const start = 0;
     const end = value;
     const startTime = Date.now();
-    
+
     const animate = () => {
       const elapsed = (Date.now() - startTime) / 1000;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
       setDisplayValue(Math.round(start + (end - start) * eased));
-      
+
       if (progress < 1) requestAnimationFrame(animate);
     };
-    
+
     requestAnimationFrame(animate);
   }, [value, duration]);
 
   return <span>{prefix}{displayValue.toLocaleString()}</span>;
 }
 
-function TypingText({ text, speed = 30 }) {
-  const [displayed, setDisplayed] = useState("");
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    if (index < text.length) {
-      const timeout = setTimeout(() => {
-        setDisplayed((prev) => prev + text[index]);
-        setIndex(index + 1);
-      }, speed);
-      return () => clearTimeout(timeout);
-    }
-  }, [index, text, speed]);
-
-  return <span>{displayed}</span>;
-}
-
 export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, user }) {
-  const { card, text, muted, divider, hover, tooltipStyle } = useTheme(dark);
+  const { card, text, muted, divider, hover, tooltipStyle, chartTick } = useTheme(dark);
   const [chartMode, setChartMode] = useState("line");
-  const [aiLoading, setAiLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("demoUserId") || "1";
     }
     return "1";
   });
-
-  useEffect(() => {
-    const timer = setTimeout(() => setAiLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
 
   const switchUser = () => {
     const newId = currentUserId === "1" ? "2" : "1";
@@ -106,9 +84,9 @@ export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, us
         const val = (stockMap[h.symbol]?.price ?? 0) * h.qty;
         return Math.max(max, (val / Math.max(portfolioValue, 1)) * 100);
       }, 0) * 0.5 +
-        (holdings.filter((h) => stockMap[h.symbol]?.sector === "IT").length /
-          Math.max(holdings.length, 1)) * 100 * 0.3 +
-        20
+      (holdings.filter((h) => stockMap[h.symbol]?.sector === "IT").length /
+        Math.max(holdings.length, 1)) * 100 * 0.3 +
+      20
     )
   );
 
@@ -148,10 +126,6 @@ export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, us
     { name: "Sat", value: +portfolioValue.toFixed(0) },
   ];
 
-  const aiText = aiLoading
-    ? "Analyzing portfolio..."
-    : "Your portfolio is 62% concentrated in IT and Finance sectors. The top holding (HDFC) represents 38% of total value — a single sector event could wipe ₹22,000+. Consider adding 2–3 FMCG or pharma stocks to reduce concentration risk below 25%.";
-
   const isProfit = totalPnL >= 0;
 
   const containerVariants = {
@@ -176,22 +150,20 @@ export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, us
     >
       {/* Background gradient */}
       <div
-        className={`fixed inset-0 pointer-events-none -z-10 ${
-          dark
-            ? "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950"
-            : "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-50 via-white to-white"
-        }`}
+        className={`fixed inset-0 pointer-events-none -z-10 ${dark
+          ? "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950"
+          : "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-50 via-white to-white"
+          }`}
       />
 
       {/* Switch User button */}
       <motion.button
         variants={itemVariants}
         onClick={switchUser}
-        className={`absolute top-0 right-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-          dark
-            ? "bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700"
-            : "bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-200"
-        }`}
+        className={`self-start mb-2 sm:mb-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${dark
+          ? "bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700"
+          : "bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-200"
+          }`}
       >
         Switch User ({USER_DATA[currentUserId]?.username || "Demo"})
       </motion.button>
@@ -202,11 +174,10 @@ export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, us
         <motion.div
           variants={itemVariants}
           whileHover={{ scale: 1.02 }}
-          className={`rounded-2xl border p-6 relative overflow-hidden transition-all duration-300 ${
-            dark
-              ? "bg-gradient-to-br from-emerald-900/60 to-gray-900 border-emerald-800/50 hover:shadow-lg hover:shadow-emerald-900/20"
-              : "bg-gradient-to-br from-emerald-50 to-white border-emerald-200 hover:shadow-lg hover:shadow-emerald-500/20"
-          }`}
+          className={`rounded-2xl border p-6 relative overflow-hidden transition-all duration-300 ${dark
+            ? "bg-gradient-to-br from-emerald-900/60 to-gray-900 border-emerald-800/50 hover:shadow-lg hover:shadow-emerald-900/20"
+            : "bg-gradient-to-br from-emerald-50 to-white border-emerald-200 hover:shadow-lg hover:shadow-emerald-500/20"
+            }`}
         >
           <div
             className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10"
@@ -236,18 +207,16 @@ export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, us
         <motion.div
           variants={itemVariants}
           whileHover={{ scale: 1.02 }}
-          className={`rounded-2xl border p-6 transition-all duration-300 ${
-            card
-          }`}
+          className={`rounded-2xl border p-6 transition-all duration-300 ${card
+            }`}
         >
           <div className={`text-xs font-semibold tracking-widest mb-1 ${muted}`}>PORTFOLIO VALUE</div>
           <div className={`text-4xl font-bold mb-1 ${text}`}>
             <AnimatedNumber value={Math.round(portfolioValue)} />
           </div>
           <motion.div
-            className={`flex items-center gap-1.5 text-sm ${
-              isProfit ? "text-emerald-500" : "text-red-500"
-            }`}
+            className={`flex items-center gap-1.5 text-sm ${isProfit ? "text-emerald-500" : "text-red-500"
+              }`}
             initial={false}
             animate={isProfit ? { boxShadow: "0 0 20px rgba(16, 185, 129, 0.3)" } : {}}
           >
@@ -263,12 +232,12 @@ export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, us
         <motion.div
           variants={itemVariants}
           whileHover={{ scale: 1.02 }}
-          className={`rounded-2xl border p-6 flex items-center gap-5 transition-all duration-300 ${card}`}
+          className={`rounded-2xl border p-4 sm:p-6 flex flex-col sm:flex-row items-center gap-3 sm:gap-5 transition-all duration-300 ${card}`}
         >
-          <CircularProgress value={riskScore} size={90} color={riskColor} />
-          <div>
+          <CircularProgress value={riskScore} size={80} color={riskColor} />
+          <div className="text-center sm:text-left">
             <div className={`text-xs font-semibold tracking-widest mb-1 ${muted}`}>RISK SCORE</div>
-            <div className="text-lg font-bold" style={{ color: riskColor }}>
+            <div className="text-base sm:text-lg font-bold" style={{ color: riskColor }}>
               {riskLabel}
             </div>
             <div className={`text-xs mt-1 ${muted}`}>Loss Probability</div>
@@ -305,25 +274,23 @@ export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, us
             <div className="flex gap-1">
               <button
                 onClick={() => setChartMode("line")}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
-                  chartMode === "line"
-                    ? "bg-emerald-500 text-white"
-                    : dark
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${chartMode === "line"
+                  ? "bg-emerald-500 text-white"
+                  : dark
                     ? "bg-gray-800 text-gray-400"
                     : "bg-gray-100 text-gray-500"
-                }`}
+                  }`}
               >
                 Line
               </button>
               <button
                 onClick={() => setChartMode("candle")}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
-                  chartMode === "candle"
-                    ? "bg-emerald-500 text-white"
-                    : dark
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${chartMode === "candle"
+                  ? "bg-emerald-500 text-white"
+                  : dark
                     ? "bg-gray-800 text-gray-400"
                     : "bg-gray-100 text-gray-500"
-                }`}
+                  }`}
               >
                 Candle
               </button>
@@ -349,12 +316,16 @@ export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, us
                     </defs>
                     <XAxis
                       dataKey="name"
-                      tick={{ fontSize: 11, fill: dark ? "#6b7280" : "#9ca3af" }}
+                      tick={{ fontSize: 11, fill: chartTick, fontWeight: 500 }}
                       axisLine={false}
                       tickLine={false}
                     />
                     <YAxis hide domain={["auto", "auto"]} />
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`₹${v.toLocaleString()}`, "Value"]} />
+                    <Tooltip
+                      contentStyle={tooltipStyle}
+                      formatter={(v) => [<span className="font-bold text-emerald-400">₹{v.toLocaleString()}</span>, "Portfolio Value"]}
+                      labelStyle={{ fontWeight: 600, color: dark ? "#e5e7eb" : "#374151", marginBottom: 4 }}
+                    />
                     <Line
                       type="monotone"
                       dataKey="value"
@@ -378,14 +349,18 @@ export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, us
                   <BarChart data={candleData}>
                     <XAxis
                       dataKey="name"
-                      tick={{ fontSize: 11, fill: dark ? "#6b7280" : "#9ca3af" }}
+                      tick={{ fontSize: 11, fill: chartTick, fontWeight: 500 }}
                       axisLine={false}
                       tickLine={false}
                     />
                     <YAxis hide domain={["auto", "auto"]} />
                     <Tooltip
                       contentStyle={tooltipStyle}
-                      formatter={(v) => [`₹${v.toLocaleString()}`, "Close"]}
+                      formatter={(v, name, props) => [
+                        <span className="font-bold" style={{ color: props.payload.isGreen ? "#10b981" : "#ef4444" }}>₹{v.toLocaleString()}</span>,
+                        "Close Price"
+                      ]}
+                      labelStyle={{ fontWeight: 600, color: dark ? "#e5e7eb" : "#374151", marginBottom: 4 }}
                     />
                     <Bar dataKey="value" radius={[4, 4, 0, 0]} animationDuration={1500}>
                       {candleData.map((entry, index) => (
@@ -399,48 +374,8 @@ export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, us
           </AnimatePresence>
         </motion.div>
 
-        {/* AI advisor */}
-        <motion.div
-          variants={itemVariants}
-          whileHover={{ scale: 1.02 }}
-          className={`rounded-2xl border p-6 transition-all duration-300 ${
-            dark
-              ? "bg-gradient-to-b from-violet-950/40 to-gray-900 border-violet-800/40 hover:shadow-lg hover:shadow-violet-900/20"
-              : "bg-gradient-to-b from-violet-50 to-white border-violet-200 hover:shadow-lg hover:shadow-violet-500/20"
-          }`}
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <motion.div
-              animate={{ scale: aiLoading ? [1, 1.1, 1] : 1 }}
-              transition={{ repeat: aiLoading ? Infinity : 0, duration: 1 }}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                dark ? "bg-violet-900/60" : "bg-violet-100"
-              }`}
-            >
-              <Icon name="brain" size={14} cls={dark ? "text-violet-400" : "text-violet-600"} />
-            </motion.div>
-            <div>
-              <div className={`text-xs font-bold tracking-widest ${dark ? "text-violet-400" : "text-violet-600"}`}>
-                AI ADVISOR
-              </div>
-              <div className={`text-xs ${muted}`}>Powered by Gemini</div>
-            </div>
-          </div>
-          <p className={`text-sm leading-relaxed ${dark ? "text-gray-300" : "text-gray-700"}`}>
-            {aiLoading ? <TypingText text={aiText} speed={20} /> : aiText}
-          </p>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className={`mt-4 w-full py-2 rounded-xl text-xs font-semibold tracking-wide transition ${
-              dark
-                ? "bg-violet-900/50 hover:bg-violet-800/60 text-violet-300 border border-violet-700/50"
-                : "bg-violet-100 hover:bg-violet-200 text-violet-700 border border-violet-300"
-            }`}
-          >
-            REFRESH ANALYSIS
-          </motion.button>
-        </motion.div>
+        {/* TradeX Assistant */}
+        <TradeXAssistant dark={dark} username={user?.username || "Trader"} />
       </div>
 
       {/* Holdings list */}
@@ -448,15 +383,15 @@ export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, us
         variants={itemVariants}
         className={`rounded-2xl border ${card}`}
       >
-        <div className={`px-6 py-4 border-b ${divider} flex items-center justify-between`}>
+        <div className={`px-4 sm:px-6 py-4 border-b ${divider} flex items-center justify-between`}>
           <span className={`text-xs font-semibold tracking-widest ${muted}`}>YOUR HOLDINGS</span>
           <span className={`text-xs ${muted}`}>{holdings.length} positions</span>
         </div>
         {holdings.length === 0 ? (
-          <div className="px-6 py-12 flex flex-col items-center justify-center">
-            <div className="text-4xl mb-3">🚀</div>
-            <div className={`text-lg font-semibold ${text}`}>No investments yet</div>
-            <div className={`text-sm ${muted}`}>Start trading to build your portfolio</div>
+          <div className="px-4 sm:px-6 py-8 sm:py-12 flex flex-col items-center justify-center">
+            <div className="text-3xl sm:text-4xl mb-3">🚀</div>
+            <div className={`text-base sm:text-lg font-semibold ${text}`}>No investments yet</div>
+            <div className={`text-xs sm:text-sm ${muted}`}>Start trading to build your portfolio</div>
           </div>
         ) : (
           <div className={`divide-y ${dark ? "divide-gray-800/50" : "divide-gray-100"}`}>
@@ -473,29 +408,27 @@ export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, us
                 <motion.div
                   key={h.symbol}
                   whileHover={{ scale: 1.01 }}
-                  className={`flex items-center gap-4 px-6 py-3.5 transition ${hover}`}
+                  className={`flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3 sm:py-3.5 transition ${hover}`}
                 >
                   <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                      dark ? "bg-gray-800" : "bg-gray-100"
-                    } ${text}`}
+                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0 ${dark ? "bg-gray-800" : "bg-gray-100"
+                      } ${text}`}
                   >
                     {h.symbol.slice(0, 2)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className={`text-sm font-semibold ${text}`}>{h.symbol}</div>
+                    <div className={`text-xs sm:text-sm font-semibold ${text}`}>{h.symbol}</div>
                     <div className={`text-xs ${muted}`}>
                       {h.qty} shares · avg ₹{h.avgPrice.toLocaleString()}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className={`text-sm font-bold ${text}`}>
+                  <div className="text-right shrink-0">
+                    <div className={`text-xs sm:text-sm font-bold ${text}`}>
                       ₹{Math.round(curr).toLocaleString()}
                     </div>
                     <motion.div
-                      className={`text-xs font-semibold ${
-                        isHoldingProfit ? "text-emerald-500" : "text-red-500"
-                      }`}
+                      className={`text-xs font-semibold ${isHoldingProfit ? "text-emerald-500" : "text-red-500"
+                        }`}
                       initial={false}
                       animate={
                         isHoldingProfit
@@ -512,7 +445,7 @@ export default function Dashboard({ holdings, stockMap, wallet, dark, onSell, us
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => onSell && onSell(h)}
-                    className="ml-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 transition"
+                    className="px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 transition shrink-0"
                   >
                     SELL
                   </motion.button>

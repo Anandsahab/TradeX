@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
  *   onLogout fn    — logout handler
  */
 export default function Navbar({ page, setPage, dark, setDark, wallet, user, onLogout }) {
-  const { text, muted, divider, subtle } = useTheme(dark);
+  const { text, muted, divider } = useTheme(dark);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [showProfileMenu, setShowProfileMenu] = React.useState(false);
   const navigate = useNavigate();
@@ -55,9 +55,21 @@ export default function Navbar({ page, setPage, dark, setDark, wallet, user, onL
       >
         {/* Logo */}
         <div className="flex items-center gap-2 shrink-0">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">
-            T
-          </div>
+          <svg viewBox="0 0 32 32" className="w-8 h-8 shrink-0" shapeRendering="geometricPrecision">
+            <defs>
+              <linearGradient id="navLogoGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#8b5cf6"/>
+                <stop offset="100%" stopColor="#6d28d9"/>
+              </linearGradient>
+            </defs>
+            <rect width="32" height="32" rx="8" fill="#0c0c10" stroke="url(#navLogoGrad)" strokeWidth="0.8"/>
+            <rect x="5" y="7" width="13" height="4" rx="2" fill="#f3f4f6"/>
+            <rect x="9.5" y="10.5" width="4" height="15" rx="2" fill="#f3f4f6"/>
+            <g transform="translate(20, 16)">
+              <rect x="-2" y="-9.5" width="4" height="19" rx="2" fill="#7c3aed" transform="rotate(38)"/>
+              <rect x="-2" y="-9.5" width="4" height="19" rx="2" fill="#a78bfa" transform="rotate(-38)"/>
+            </g>
+          </svg>
           <div className={`hidden sm:block text-sm font-bold tracking-tight ${text}`}>TradeX</div>
         </div>
 
@@ -66,15 +78,15 @@ export default function Navbar({ page, setPage, dark, setDark, wallet, user, onL
           <div className={`relative flex items-center rounded-xl border ${
             dark ? "border-gray-700 bg-gray-800" : "border-gray-200 bg-gray-50"
           }`}>
-            <div className="pl-3">
-              <Icon name="search" size={16} cls={muted} />
+            <div className="pl-2.5 sm:pl-3">
+              <Icon name="search" size={14} cls={muted} />
             </div>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search TradeX"
-              className={`w-full px-2 py-2 text-sm bg-transparent focus:outline-none ${text}`}
+              className={`w-full px-1.5 sm:px-2 py-2 text-xs sm:text-sm bg-transparent focus:outline-none ${text}`}
             />
           </div>
         </form>
@@ -162,11 +174,11 @@ export default function Navbar({ page, setPage, dark, setDark, wallet, user, onL
 
           {/* Wallet chip */}
           <div
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-semibold ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl text-sm font-semibold ${
               dark ? "bg-gray-800" : "bg-gray-100"
             } ${text}`}
           >
-            <Icon name="wallet" size={14} cls="text-emerald-500" />
+            <Icon name="wallet" size={12} cls="text-emerald-500 shrink-0" />
             <span className="hidden sm:inline">₹{Math.round(wallet).toLocaleString()}</span>
           </div>
 

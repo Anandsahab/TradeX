@@ -6,6 +6,7 @@ export const NAV_ITEMS = [
   { id: "portfolio", label: "Portfolio", icon: "wallet" },
   { id: "transactions", label: "History", icon: "info" },
   { id: "market",    label: "Market",    icon: "market"    },
+  { id: "orders",     label: "Orders",    icon: "orders"    },
   { id: "simulator", label: "Simulator", icon: "simulator" },
   { id: "profile",   label: "Profile",   icon: "brain" },
 ];
@@ -32,9 +33,21 @@ export default function Sidebar({ page, setPage, dark, setDark, totalValue }) {
       {/* Logo */}
       <div className="p-6 pb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">
-            T
-          </div>
+          <svg viewBox="0 0 32 32" className="w-8 h-8 shrink-0" shapeRendering="geometricPrecision">
+            <defs>
+              <linearGradient id="sideLogoGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#8b5cf6"/>
+                <stop offset="100%" stopColor="#6d28d9"/>
+              </linearGradient>
+            </defs>
+            <rect width="32" height="32" rx="8" fill="#0c0c10" stroke="url(#sideLogoGrad)" strokeWidth="0.8"/>
+            <rect x="5" y="7" width="13" height="4" rx="2" fill="#f3f4f6"/>
+            <rect x="9.5" y="10.5" width="4" height="15" rx="2" fill="#f3f4f6"/>
+            <g transform="translate(20, 16)">
+              <rect x="-2" y="-9.5" width="4" height="19" rx="2" fill="#7c3aed" transform="rotate(38)"/>
+              <rect x="-2" y="-9.5" width="4" height="19" rx="2" fill="#a78bfa" transform="rotate(-38)"/>
+            </g>
+          </svg>
           <div>
             <div className={`text-sm font-bold tracking-tight ${text}`}>TradeX</div>
             <div className={`text-xs ${subtle}`}>by Team RiskZero</div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { LineChart, Line, ResponsiveContainer, AreaChart, Area } from "recharts";
+import { ResponsiveContainer, AreaChart, Area } from "recharts";
 import { Icon } from "../components/ui.jsx";
 
 const FEATURES = [
@@ -100,11 +100,8 @@ function FloatingCard({ dark, delay = 0, children, glowColor = "emerald", blurDe
 export default function Landing({ user, onLoginClick }) {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -224,7 +221,7 @@ export default function Landing({ user, onLoginClick }) {
               <span className="text-xs font-medium text-emerald-400">Virtual Trading Platform</span>
             </motion.div>
 
-            <h1 className="text-4xl lg:text-6xl font-bold leading-tight mb-4">
+            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight mb-4">
               <span className="block">Invest Smarter.</span>
               <span className="block text-emerald-400">Practice Risk-Free.</span>
             </h1>
@@ -238,12 +235,12 @@ export default function Landing({ user, onLoginClick }) {
               <RollingText words={["Learn", "Invest", "Simulate", "Grow"]} dark={true} />
             </div>
 
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-3 sm:gap-4">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleGetStarted}
-                className="px-8 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 font-semibold transition shadow-lg shadow-emerald-500/20"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 font-semibold text-sm sm:text-base transition shadow-lg shadow-emerald-500/20"
               >
                 Get Started
               </motion.button>
@@ -251,7 +248,7 @@ export default function Landing({ user, onLoginClick }) {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleExplore}
-                className="px-8 py-3.5 rounded-xl border border-gray-700 hover:border-gray-600 font-semibold transition"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl border border-gray-700 hover:border-gray-600 font-semibold text-sm sm:text-base transition"
               >
                 Explore Market
               </motion.button>
@@ -282,11 +279,11 @@ export default function Landing({ user, onLoginClick }) {
                   <AreaChart data={CHART_DATA}>
                     <defs>
                       <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
-                        <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.6} />
+                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.05} />
                       </linearGradient>
                     </defs>
-                    <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fill="url(#heroGrad)" />
+                    <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2.5} fill="url(#heroGrad)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -378,7 +375,7 @@ export default function Landing({ user, onLoginClick }) {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {FEATURES.map((feature, index) => (
               <motion.div
                 key={feature.title}
@@ -430,15 +427,15 @@ export default function Landing({ user, onLoginClick }) {
                 <AreaChart data={CHART_DATA}>
                   <defs>
                     <linearGradient id="marketGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.5} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.03} />
                     </linearGradient>
                   </defs>
                   <Area
                     type="monotone"
                     dataKey="value"
                     stroke="#10b981"
-                    strokeWidth={2}
+                    strokeWidth={2.5}
                     fill="url(#marketGrad)"
                   />
                 </AreaChart>
@@ -490,7 +487,7 @@ export default function Landing({ user, onLoginClick }) {
             <p className="text-gray-400">Start trading in three simple steps</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-3 gap-6 sm:gap-8">
             {STEPS.map((step, index) => (
               <motion.div
                 key={step.num}
@@ -517,10 +514,10 @@ export default function Landing({ user, onLoginClick }) {
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="max-w-3xl mx-auto text-center p-12 rounded-3xl bg-gradient-to-br from-emerald-900/50 to-gray-900 border border-emerald-500/30"
+          className="max-w-3xl mx-auto text-center p-6 sm:p-12 rounded-3xl bg-gradient-to-br from-emerald-900/50 to-gray-900 border border-emerald-500/30"
         >
-          <h2 className="text-3xl font-bold mb-4">Ready to Start Trading?</h2>
-          <p className="text-gray-400 mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to Start Trading?</h2>
+          <p className={`text-sm sm:text-base text-gray-400 mb-6 sm:mb-8`}>
             Join thousands of traders practicing risk-free. Create your free account today.
           </p>
           <div className="flex justify-center gap-4">
@@ -528,7 +525,7 @@ export default function Landing({ user, onLoginClick }) {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleGetStarted}
-              className="px-8 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 font-semibold transition"
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 font-semibold text-sm sm:text-base transition"
             >
               Get Started Free
             </motion.button>
@@ -539,7 +536,7 @@ export default function Landing({ user, onLoginClick }) {
       {/* Footer */}
       <footer className="py-12 px-4 lg:px-8 border-t border-gray-800">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-bold text-xs">
                 T
@@ -547,7 +544,7 @@ export default function Landing({ user, onLoginClick }) {
               <span className="font-semibold">TradeX</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-400">
-              <span>© 2024 TradeX. All rights reserved.</span>
+              <span>© 2026 TradeX. All rights reserved.</span>
             </div>
           </div>
         </div>

@@ -50,22 +50,22 @@ export default function SignUp({ setUser, dark }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-3 sm:p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`w-full max-w-md rounded-2xl border p-8 ${
+        className={`w-full max-w-md rounded-2xl border p-5 sm:p-8 ${
           dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"
         }`}
       >
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-bold text-lg sm:text-xl mx-auto mb-4">
             T
           </div>
-          <h1 className={`text-2xl font-bold ${dark ? "text-white" : "text-gray-900"}`}>
+          <h1 className={`text-xl sm:text-2xl font-bold ${dark ? "text-white" : "text-gray-900"}`}>
             Create Account
           </h1>
-          <p className={dark ? "text-gray-400" : "text-gray-500"}>
+          <p className={`text-sm ${dark ? "text-gray-400" : "text-gray-500"}`}>
             Start your trading journey with TradeX
           </p>
         </div>

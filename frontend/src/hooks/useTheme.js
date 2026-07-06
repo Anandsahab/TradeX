@@ -17,10 +17,18 @@ export function useTheme(dark) {
     hover:  dark ? "hover:bg-gray-800"              : "hover:bg-gray-50",
     divider:dark ? "border-gray-800"                : "border-gray-200",
     tooltipStyle: {
-      background:   dark ? "#111827" : "#fff",
-      border:       `1px solid ${dark ? "#374151" : "#e5e7eb"}`,
-      borderRadius: 10,
-      fontSize:     12,
+      background:   dark ? "#0a0a0a" : "#fff",
+      border:       `1px solid ${dark ? "#1f2937" : "#e5e7eb"}`,
+      borderRadius: 12,
+      padding:      "10px 14px",
+      fontSize:     13,
+      color:        dark ? "#f3f4f6" : "#111827",
+      boxShadow:    dark
+        ? "0 8px 32px rgba(0,0,0,0.6)"
+        : "0 4px 16px rgba(0,0,0,0.1)",
     },
+    chartGrid:    dark ? "#1f2937" : "#e5e7eb",
+    chartTick:    dark ? "#9ca3af" : "#6b7280",
+    chartBg:      dark ? "#0f0f0f" : "#ffffff",
   };
 }

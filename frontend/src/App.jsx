@@ -10,6 +10,7 @@ import Market from "./pages/Market.jsx";
 import Simulator from "./pages/Simulator.jsx";
 import Portfolio from "./pages/Portfolio.jsx";
 import Transactions from "./pages/Transactions.jsx";
+import Orders from "./pages/Orders.jsx";
 import Profile from "./pages/Profile.jsx";
 import Login from "./pages/Login.jsx";
 import SignUp from "./pages/SignUp.jsx";
@@ -103,7 +104,7 @@ export default function TradeX() {
           setSparklines(data.sparklines);
         }
       })
-      .catch((err) => console.log("Using local stock data"));
+      .catch(() => {});
 
     fetch(`${API_URL}/portfolio`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -119,7 +120,60 @@ export default function TradeX() {
           setHoldings(data.holdings || []);
         }
       })
-      .catch((err) => console.log("Using local portfolio data"));
+      .catch(() => {});
+  }, [user]);
+
+  // Real-time price updates (simulated fluctuations every 2 seconds)
+  useEffect(() => {
+    if (!isAuthenticated() && !user) return;
+
+    const livePriceInterval = setInterval(() => {
+      fetch(`${API_URL}/stocks/live`, { credentials: "include" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.prices) {
+            setStockMap((prev) => {
+              const updated = { ...prev };
+              Object.keys(data.prices).forEach((symbol) => {
+                if (updated[symbol]) {
+                  updated[symbol] = {
+                    ...updated[symbol],
+                    price: data.prices[symbol].price,
+                    change: data.prices[symbol].change,
+                    changePercent: data.prices[symbol].changePercent,
+                  };
+                }
+              });
+              return updated;
+            });
+          }
+        })
+        .catch(() => {});
+    }, 2000);
+
+    return () => clearInterval(livePriceInterval);
+  }, [user]);
+
+  // Fetch fresh base prices from yfinance every 60 seconds
+  useEffect(() => {
+    if (!isAuthenticated() && !user) return;
+
+    const refreshPrices = () => {
+      fetch(`${API_URL}/stocks?fresh=true`, { credentials: "include" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.stockMap) {
+            setStockMap(data.stockMap);
+            setSparklines(data.sparklines);
+          }
+        })
+        .catch(() => {});
+    };
+
+    refreshPrices();
+    const refreshInterval = setInterval(refreshPrices, 60000);
+
+    return () => clearInterval(refreshInterval);
   }, [user]);
 
   const portfolioValue = holdings.reduce(
@@ -223,7 +277,7 @@ export default function TradeX() {
   return (
     <BrowserRouter>
       <div
-        className={`min-h-screen ${bg} font-sans transition-colors duration-300`}
+        className={`min-h-screen ${bg} font-sans transition-colors duration-300 overflow-x-hidden`}
         style={{ fontFamily: "'DM Sans', 'Sora', system-ui, sans-serif" }}
       >
         <style>{`
@@ -237,13 +291,13 @@ export default function TradeX() {
 
         {notification && (
           <div
-            className="fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl"
+            className="fixed top-4 right-4 left-4 md:left-auto md:right-5 md:top-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl"
             style={{
               animation: "slideDown .3s ease both",
               background: notification.type === "success" ? "#10b981" : "#ef4444",
             }}
           >
-            <Icon name="check" size={16} cls="text-white" />
+            <Icon name="check" size={16} cls="text-white shrink-0" />
             <span className="text-sm font-semibold text-white">{notification.msg}</span>
           </div>
         )}
@@ -304,7 +358,7 @@ export default function TradeX() {
                   onLogout={handleLogout}
                 />
 
-                <div className="pb-20 lg:pb-0 p-5 lg:p-6" style={{ animation: "fadeIn .3s ease" }}>
+                <div className="pb-20 lg:pb-0 p-4 sm:p-5 lg:p-6 max-w-full overflow-x-hidden" style={{ animation: "fadeIn .3s ease" }}>
                   {page === "dashboard" && (
                     <Dashboard
                       holdings={holdings}
@@ -319,6 +373,7 @@ export default function TradeX() {
                     <Market
                       holdings={holdings}
                       sparklines={sparklines}
+                      stockMap={stockMap}
                       dark={dark}
                       onBuy={(stock) => setBuyTarget(stock)}
                     />
@@ -334,6 +389,14 @@ export default function TradeX() {
                   )}
                   {page === "portfolio" && <Portfolio dark={dark} user={user} />}
                   {page === "transactions" && <Transactions dark={dark} user={user} />}
+                  {page === "orders" && (
+                    <Orders
+                      dark={dark}
+                      user={user}
+                      stockMap={stockMap}
+                      wallet={wallet}
+                    />
+                  )}
                   {page === "profile" && (
                     <Profile
                       user={user}

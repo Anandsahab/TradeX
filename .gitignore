@@ -1,5 +1,49 @@
-node_modules/
-.vite/
-dist/
+# Python
 __pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment Variables
 .env
+.env.*
+!.env.example
+
+# Database & Runtime Files
+*.db
+*.sqlite
+*.sqlite3
+*.pid
+*.log
+
+# Node / Frontend
+node_modules/
+dist/
+.vite/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Build Artifacts
+build/
+out/

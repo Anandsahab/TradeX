@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LineChart, Line, ResponsiveContainer } from "recharts";
+import { LineChart, Line, Area, ResponsiveContainer } from "recharts";
 
 // ─── ICON ─────────────────────────────────────────────────────────────────────
 const ICON_PATHS = {
@@ -20,11 +20,15 @@ const ICON_PATHS = {
   settings:     "M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z",
   chevron_right: "M9 18l6-6-6-6",
   chevron_left:  "M15 18l-6-6 6-6",
+  chevron_down:  "M6 9l6 6 6-6",
+  chevron_up:    "M18 15l-6-6-6 6",
   logout:       "M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4 M16 17l5-5-5-5 M21 12H9",
   list:         "M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01",
   account_balance: "M4 10v7h3v-7H4z M10 10v7h3v-7h-3z M2 10h3v7H2V10z M16 10v7h3v-7h-3z M12 2v2 M12 12v2 M12 22v2",
   support_agent: "M12 2a10 10 0 100 20 10 10 0 000-20z M12 18a6 6 0 110-12 6 6 0 010 12z M12 14a2 2 0 100-4 2 2 0 000 4z M21 15v2a4 4 0 01-4 4H7a4 4 0 01-4-4v-2",
   assessment:   "M4 4h7v7H4V4z M13 4h7v7h-7V4z M4 13h7v7H4v-7z M13 13h7v7h-7v-7z M9 9h1 M9 14h1 M14 9h1 M14 14h1",
+  orders:       "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2 M7 12h10 M7 16h10",
+  refresh:      "M23 4v6h-6 M1 20v-6h6 M3.51 9a9 9 0 0114.85-3.36L23 10 M1 14l4.64 4.36A9 9 0 0020.49 15",
 };
 
 export const Icon = ({ name, size = 18, cls = "" }) => (
@@ -76,19 +80,33 @@ export const CircularProgress = ({ value, size = 120, color }) => {
 };
 
 // ─── SPARKLINE ────────────────────────────────────────────────────────────────
-export const Sparkline = ({ data, positive }) => (
-  <ResponsiveContainer width={80} height={36}>
-    <LineChart data={data.slice(-15)}>
-      <Line
-        type="monotone"
-        dataKey="price"
-        stroke={positive ? "#10b981" : "#ef4444"}
-        strokeWidth={1.5}
-        dot={false}
-      />
-    </LineChart>
-  </ResponsiveContainer>
-);
+export const Sparkline = ({ data, positive, area = true }) => {
+  const color = positive ? "#10b981" : "#ef4444";
+  return (
+    <ResponsiveContainer width={80} height={40}>
+      <LineChart data={data.slice(-15)}>
+        {area && (
+          <defs>
+            <linearGradient id={`spark-grad-${positive ? "up" : "dn"}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+              <stop offset="100%" stopColor={color} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+        )}
+        <Line
+          type="monotone"
+          dataKey="price"
+          stroke={color}
+          strokeWidth={1.5}
+          dot={false}
+        />
+        {area && (
+          <Area type="monotone" dataKey="price" fill={`url(#spark-grad-${positive ? "up" : "dn"})`} stroke="none" />
+        )}
+      </LineChart>
+    </ResponsiveContainer>
+  );
+};
 
 // ─── BUY MODAL ────────────────────────────────────────────────────────────────
 export const BuyModal = ({ stock, wallet, onClose, onBuy, dark }) => {
@@ -109,61 +127,61 @@ export const BuyModal = ({ stock, wallet, onClose, onBuy, dark }) => {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-full max-w-md rounded-2xl p-6 shadow-2xl border ${card}`}
+        className={`relative w-full max-w-sm sm:max-w-md rounded-2xl p-4 sm:p-6 shadow-2xl border ${card}`}
         style={{ animation: "modalIn .25s cubic-bezier(.34,1.56,.64,1) both" }}
       >
         {/* Header */}
-        <div className="flex items-start justify-between mb-5">
-          <div>
+        <div className="flex items-start justify-between mb-4 sm:mb-5">
+          <div className="min-w-0">
             <div className="text-xs font-semibold tracking-widest text-emerald-500 mb-1">{stock.sector}</div>
-            <h3 className={`text-xl font-bold ${text}`}>{stock.name}</h3>
+            <h3 className={`text-lg sm:text-xl font-bold ${text} truncate`}>{stock.name}</h3>
             <span className={`text-sm ${muted}`}>{stock.symbol}</span>
           </div>
           <button
             onClick={onClose}
-            className={`p-2 rounded-xl transition ${dark ? "hover:bg-gray-800 text-gray-400" : "hover:bg-gray-100 text-gray-500"}`}
+            className={`p-2 rounded-xl transition shrink-0 ${dark ? "hover:bg-gray-800 text-gray-400" : "hover:bg-gray-100 text-gray-500"}`}
           >
             <Icon name="close" size={16} />
           </button>
         </div>
 
         {/* Price / wallet row */}
-        <div className={`rounded-xl p-4 mb-5 ${dark ? "bg-gray-800" : "bg-gray-50"}`}>
-          <div className={`flex justify-between text-sm mb-1 ${muted}`}>
+        <div className={`rounded-xl p-3 sm:p-4 mb-4 sm:mb-5 ${dark ? "bg-gray-800" : "bg-gray-50"}`}>
+          <div className={`flex justify-between text-xs sm:text-sm mb-1 ${muted}`}>
             <span>Current Price</span><span>Available Wallet</span>
           </div>
           <div className="flex justify-between">
-            <span className={`text-2xl font-bold ${text}`}>₹{stock.price.toLocaleString()}</span>
-            <span className="text-2xl font-bold text-emerald-500">₹{wallet.toLocaleString()}</span>
+            <span className={`text-lg sm:text-2xl font-bold ${text}`}>₹{stock.price.toLocaleString()}</span>
+            <span className="text-lg sm:text-2xl font-bold text-emerald-500">₹{wallet.toLocaleString()}</span>
           </div>
         </div>
 
         {/* Quantity picker */}
-        <div className="mb-5">
-          <label className={`block text-sm font-medium mb-2 ${dark ? "text-gray-300" : "text-gray-700"}`}>Quantity</label>
+        <div className="mb-4 sm:mb-5">
+          <label className={`block text-xs sm:text-sm font-medium mb-2 ${dark ? "text-gray-300" : "text-gray-700"}`}>Quantity</label>
           <div className="flex items-center gap-3">
             <button onClick={() => setQty(Math.max(1, qty - 1))}
-              className={`w-10 h-10 rounded-xl font-bold text-lg transition ${btnBg}`}>−</button>
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl font-bold text-lg transition ${btnBg} shrink-0`}>−</button>
             <input
               type="number" min="1" value={qty}
               onChange={(e) => setQty(Math.max(1, parseInt(e.target.value) || 1))}
-              className={`flex-1 text-center text-xl font-bold rounded-xl border py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${inputCls}`}
+              className={`flex-1 text-center text-lg sm:text-xl font-bold rounded-xl border py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${inputCls}`}
             />
             <button onClick={() => setQty(qty + 1)}
-              className={`w-10 h-10 rounded-xl font-bold text-lg transition ${btnBg}`}>+</button>
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl font-bold text-lg transition ${btnBg} shrink-0`}>+</button>
           </div>
         </div>
 
         {/* Total cost */}
-        <div className={`rounded-xl p-4 mb-5 flex justify-between items-center ${
+        <div className={`rounded-xl p-3 sm:p-4 mb-4 sm:mb-5 flex justify-between items-center ${
           canAfford
             ? "bg-emerald-500/10 border border-emerald-500/30"
             : "bg-red-500/10 border border-red-500/30"
         }`}>
-          <span className={`text-sm font-medium ${canAfford ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
+          <span className={`text-xs sm:text-sm font-medium ${canAfford ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
             {canAfford ? "Total Cost" : "⚠ Insufficient funds"}
           </span>
-          <span className={`text-xl font-bold ${canAfford ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
+          <span className={`text-lg sm:text-xl font-bold ${canAfford ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
             ₹{total.toLocaleString()}
           </span>
         </div>
@@ -172,7 +190,7 @@ export const BuyModal = ({ stock, wallet, onClose, onBuy, dark }) => {
         <button
           onClick={() => canAfford && onBuy(stock, qty)}
           disabled={!canAfford}
-          className={`w-full py-3.5 rounded-xl font-bold text-sm tracking-wide transition-all ${
+          className={`w-full py-3 sm:py-3.5 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition-all ${
             canAfford
               ? "bg-emerald-500 hover:bg-emerald-400 text-white shadow-lg shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98]"
               : "bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
@@ -209,52 +227,52 @@ export const SellModal = ({ stock, holding, wallet, onClose, onSell, dark }) => 
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-full max-w-md rounded-2xl p-6 shadow-2xl border ${card}`}
+        className={`relative w-full max-w-sm sm:max-w-md rounded-2xl p-4 sm:p-6 shadow-2xl border ${card}`}
         style={{ animation: "modalIn .25s cubic-bezier(.34,1.56,.64,1) both" }}
       >
-        <div className="flex items-start justify-between mb-5">
-          <div>
+        <div className="flex items-start justify-between mb-4 sm:mb-5">
+          <div className="min-w-0">
             <div className="text-xs font-semibold tracking-widest text-red-500 mb-1">{stock.sector}</div>
-            <h3 className={`text-xl font-bold ${text}`}>{stock.name}</h3>
+            <h3 className={`text-lg sm:text-xl font-bold ${text} truncate`}>{stock.name}</h3>
             <span className={`text-sm ${muted}`}>{stock.symbol}</span>
           </div>
           <button
             onClick={onClose}
-            className={`p-2 rounded-xl transition ${dark ? "hover:bg-gray-800 text-gray-400" : "hover:bg-gray-100 text-gray-500"}`}
+            className={`p-2 rounded-xl transition shrink-0 ${dark ? "hover:bg-gray-800 text-gray-400" : "hover:bg-gray-100 text-gray-500"}`}
           >
             <Icon name="close" size={16} />
           </button>
         </div>
 
-        <div className={`rounded-xl p-4 mb-5 ${dark ? "bg-gray-800" : "bg-gray-50"}`}>
-          <div className={`flex justify-between text-sm mb-1 ${muted}`}>
+        <div className={`rounded-xl p-3 sm:p-4 mb-4 sm:mb-5 ${dark ? "bg-gray-800" : "bg-gray-50"}`}>
+          <div className={`flex justify-between text-xs sm:text-sm mb-1 ${muted}`}>
             <span>Current Price</span><span>Your Holdings</span>
           </div>
           <div className="flex justify-between">
-            <span className={`text-2xl font-bold ${text}`}>₹{stock.price.toLocaleString()}</span>
-            <span className="text-2xl font-bold text-blue-500">{holding.qty} shares</span>
+            <span className={`text-lg sm:text-2xl font-bold ${text}`}>₹{stock.price.toLocaleString()}</span>
+            <span className="text-lg sm:text-2xl font-bold text-blue-500">{holding.qty} shares</span>
           </div>
         </div>
 
-        <div className={`rounded-xl p-4 mb-5 ${pnl >= 0 ? "bg-emerald-500/10 border border-emerald-500/30" : "bg-red-500/10 border border-red-500/30"}`}>
-          <div className={`flex justify-between text-sm ${pnl >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
+        <div className={`rounded-xl p-3 sm:p-4 mb-4 sm:mb-5 ${pnl >= 0 ? "bg-emerald-500/10 border border-emerald-500/30" : "bg-red-500/10 border border-red-500/30"}`}>
+          <div className={`flex justify-between text-xs sm:text-sm ${pnl >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
             <span>Unrealized P&L</span>
             <span className="font-bold">{pnl >= 0 ? "+" : ""}₹{Math.round(pnl).toLocaleString()} ({pnlPercent.toFixed(2)}%)</span>
           </div>
         </div>
 
-        <div className="mb-5">
-          <label className={`block text-sm font-medium mb-2 ${dark ? "text-gray-300" : "text-gray-700"}`}>Quantity to Sell</label>
+        <div className="mb-4 sm:mb-5">
+          <label className={`block text-xs sm:text-sm font-medium mb-2 ${dark ? "text-gray-300" : "text-gray-700"}`}>Quantity to Sell</label>
           <div className="flex items-center gap-3">
             <button onClick={() => setQty(Math.max(1, qty - 1))}
-              className={`w-10 h-10 rounded-xl font-bold text-lg transition ${btnBg}`}>−</button>
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl font-bold text-lg transition ${btnBg} shrink-0`}>−</button>
             <input
               type="number" min="1" max={holding.qty} value={qty}
               onChange={(e) => setQty(Math.min(holding.qty, Math.max(1, parseInt(e.target.value) || 1)))}
-              className={`flex-1 text-center text-xl font-bold rounded-xl border py-2 focus:outline-none focus:ring-2 focus:ring-red-500 ${inputCls}`}
+              className={`flex-1 text-center text-lg sm:text-xl font-bold rounded-xl border py-2 focus:outline-none focus:ring-2 focus:ring-red-500 ${inputCls}`}
             />
             <button onClick={() => setQty(Math.min(holding.qty, qty + 1))}
-              className={`w-10 h-10 rounded-xl font-bold text-lg transition ${btnBg}`}>+</button>
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl font-bold text-lg transition ${btnBg} shrink-0`}>+</button>
           </div>
           <div className="flex gap-2 mt-2">
             {[1, Math.floor(holding.qty/2), holding.qty].map(q => (
@@ -265,15 +283,15 @@ export const SellModal = ({ stock, holding, wallet, onClose, onSell, dark }) => 
           </div>
         </div>
 
-        <div className={`rounded-xl p-4 mb-5 flex justify-between items-center ${dark ? "bg-gray-800" : "bg-gray-50"}`}>
-          <span className={`text-sm font-medium ${muted}`}>Total Proceeds</span>
-          <span className={`text-xl font-bold ${text}`}>₹{total.toLocaleString()}</span>
+        <div className={`rounded-xl p-3 sm:p-4 mb-4 sm:mb-5 flex justify-between items-center ${dark ? "bg-gray-800" : "bg-gray-50"}`}>
+          <span className={`text-xs sm:text-sm font-medium ${muted}`}>Total Proceeds</span>
+          <span className={`text-lg sm:text-xl font-bold ${text}`}>₹{total.toLocaleString()}</span>
         </div>
 
         <button
           onClick={() => canSell && onSell(stock, qty)}
           disabled={!canSell}
-          className={`w-full py-3.5 rounded-xl font-bold text-sm tracking-wide transition-all ${
+          className={`w-full py-3 sm:py-3.5 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition-all ${
             canSell
               ? "bg-red-500 hover:bg-red-400 text-white shadow-lg shadow-red-500/30 hover:scale-[1.02] active:scale-[0.98]"
               : "bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
