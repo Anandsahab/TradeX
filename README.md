@@ -21,7 +21,7 @@
 <p align="center">
   <i>"People don't fear investing — they fear losing without experience."</i>
 </p>
-(Final TradeX)
+
 
 "People don’t fear investing — they fear losing without experience."
 ---
@@ -82,6 +82,7 @@ TradeX is a **risk-free stock trading simulator** built for anyone who wants to 
 </p>
 
 </details>
+
 
 ## 🧠 Problem Statement
 
@@ -294,7 +295,7 @@ TradeX/
    ```bash
    python app.py
    ```
-
+=======
 
 ```bash
 cd backend
@@ -441,6 +442,27 @@ TITAN       Titan Company
 | **Backend** | [Render](https://render.com) | Web service with Python runtime |
 | **Database** | SQLite → PostgreSQL | For production, swap to PostgreSQL via SQLAlchemy |
 
+### Backend (Render)
+
+The backend runs as a **Python** web service using **Flask** with **Gunicorn** as the production WSGI server, and **SQLite** via **SQLAlchemy** for persistence.
+
+**Production start command:**
+```bash
+gunicorn app:app
+```
+
+**Local development:**
+```bash
+python app.py
+```
+
+**Backend API:**
+```
+https://<your-render-backend>.onrender.com
+```
+
+**Dependencies:** `gunicorn` has been added to `backend/requirements.txt` for production deployments.
+
 ---
 
 ## Author
@@ -461,3 +483,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <p align="center">
   <sub>Built with ❤️ by Chaitanya Anand</sub>
 </p>
+
