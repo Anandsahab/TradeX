@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 export default function SignUp({ setUser, dark }) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -28,7 +30,7 @@ export default function SignUp({ setUser, dark }) {
     }
 
     try {
-      const res = await fetch("/api/register", {
+      const res = await fetch(`${API_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
