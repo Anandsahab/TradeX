@@ -6,3 +6,4 @@ python-dotenv>=1.0
 requests>=2.0
 PyJWT>=2.0
 yfinance>=0.2
+gunicorn>=23.0
