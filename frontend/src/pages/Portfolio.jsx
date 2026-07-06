@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Icon } from "../components/ui.jsx";
 import { useTheme } from "../hooks/useTheme.js";
 
-const API_URL = "/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
 

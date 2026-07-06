@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Icon } from "../components/ui.jsx";
 import { useTheme } from "../hooks/useTheme.js";
 
-const API_URL = "/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const FILTER_OPTIONS = [
   { label: "All", value: "ALL" },
